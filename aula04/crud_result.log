@@ -1,0 +1,38 @@
+=== Teste CRUD iniciado em Thu Aug  6 08:35:11 PM UTC 2026 ===
+
+--- 1. Cadastrando veiculo 1 (Volvo FH 540) ---
+{
+  "id": 4,
+  "placa": "KLL-9090",
+  "montadora": "Volvo",
+  "modelo": "FH 540",
+  "status": "DISPONIVEL"
+}
+
+--- 2. Cadastrando veiculo 2 (Iveco Daily) ---
+{
+  "id": 5,
+  "placa": "RTM-4040",
+  "montadora": "Iveco",
+  "modelo": "Daily",
+  "status": "DISPONIVEL"
+}
+
+--- 3. Atualizando status do veiculo ID 4 para EM_ROTA ---
+{
+  "mensagem": "Status atualizado com sucesso!",
+  "veiculo": {
+    "id": 4,
+    "placa": "KLL-9090",
+    "montadora": "Volvo",
+    "modelo": "FH 540",
+    "status": "EM_ROTA"
+  }
+}
+
+--- 4. Deletando veiculo ID 5 ---
+{
+  "mensagem": "Veiculo ID 5 removido com sucesso."
+}
+
+=== Teste CRUD finalizado em Thu Aug  6 08:35:11 PM UTC 2026 ===

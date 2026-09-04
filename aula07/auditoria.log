@@ -1,0 +1,63 @@
+==================================================
+ AUDITORIA COMPLETA DE ROTAS - 2026-08-20 03:03:28
+==================================================
+
+--------------------------------------------------
+[2026-08-20 03:03:28] Listar frota Mercedes-Benz
+Requisição: GET http://localhost:3000/api/v1/telemetria/mercedes
+Status HTTP: 200
+Resposta: [{"id":1,"modelo":"Actros","placa":"ABC1D23","ano":2022,"capacidadeCargaTon":25,"quilometragem":45000,"disponivel":true},{"id":2,"modelo":"Atego","placa":"XYZ9K87","ano":2020,"capacidadeCargaTon":12,"quilometragem":98000,"disponivel":false}]
+Resultado: OK
+
+--------------------------------------------------
+[2026-08-20 03:03:28] Buscar caminhão Mercedes-Benz por ID (1)
+Requisição: GET http://localhost:3000/api/v1/telemetria/mercedes/1
+Status HTTP: 200
+Resposta: {"id":1,"modelo":"Actros","placa":"ABC1D23","ano":2022,"capacidadeCargaTon":25,"quilometragem":45000,"disponivel":true}
+Resultado: OK
+
+--------------------------------------------------
+[2026-08-20 03:03:28] Cadastrar caminhão Mercedes-Benz (VIN válido)
+Requisição: POST http://localhost:3000/api/v1/telemetria/mercedes
+Status HTTP: 201
+Resposta: {"id":3,"modelo":"Actros","placa":"AUD1T23","ano":2023,"capacidadeCargaTon":25,"quilometragem":0,"disponivel":true}
+Resultado: OK
+
+--------------------------------------------------
+[2026-08-20 03:03:28] Cadastrar caminhão Mercedes-Benz (VIN inválido - teste negativo)
+Requisição: POST http://localhost:3000/api/v1/telemetria/mercedes
+Status HTTP: 400
+Resposta: {"erro":"O VIN informado é inválido. Ele deve conter exatamente 12 caracteres (recebido: 5)."}
+Resultado: FALHA
+
+--------------------------------------------------
+[2026-08-20 03:03:28] Listar telemetria Scania
+Requisição: GET http://localhost:3000/api/v1/telemetria/scania
+Status HTTP: 200
+Resposta: {"montadora":"Scania","dados":[{"id":1,"modelo":"R450","vin":"9BS123456789","temperatura_motor":88,"status":"OK"},{"id":2,"modelo":"S500","vin":"9BS987654321","temperatura_motor":102,"status":"ALERTA_AQUECIMENTO"}]}
+Resultado: OK
+
+--------------------------------------------------
+[2026-08-20 03:03:28] Registrar telemetria Scania (VIN válido)
+Requisição: POST http://localhost:3000/api/v1/telemetria/scania
+Status HTTP: 201
+Resposta: {"id":3,"modelo":"R450","vin":"AUD123XYZ456","temperatura_motor":85,"status":"OK"}
+Resultado: OK
+
+--------------------------------------------------
+[2026-08-20 03:03:28] Registrar telemetria Scania (VIN inválido - teste negativo)
+Requisição: POST http://localhost:3000/api/v1/telemetria/scania
+Status HTTP: 400
+Resposta: {"erro":"O VIN informado é inválido. Ele deve conter exatamente 12 caracteres (recebido: 5)."}
+Resultado: FALHA
+
+--------------------------------------------------
+[2026-08-20 03:03:28] Consultar rota inexistente (esperado 404)
+Requisição: GET http://localhost:3000/api/v1/telemetria/inexistente
+Status HTTP: 404
+Resposta: {"erro":"Módulo ou Rota de Telemetria não encontrada."}
+Resultado: FALHA
+
+==================================================
+ AUDITORIA FINALIZADA - 2026-08-20 03:03:28
+==================================================

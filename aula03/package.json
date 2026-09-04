@@ -1,0 +1,10 @@
+{
+  "name": "binario_tech",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node telemetria.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
