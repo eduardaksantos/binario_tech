@@ -28,4 +28,4 @@ app.delete('/veiculos/:id',
   }
 );
 
-app.listen(3000, () => console.log('Servidor rodando na porta 3000'));
+app.listen(3007, () => console.log('Servidor rodando na porta 3007'));

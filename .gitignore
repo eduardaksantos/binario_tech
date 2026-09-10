@@ -1,3 +1,8 @@
 node_modules/
 .env
 *.log
+.env
+node_modules/
+.env
+node_modules/
+aula13_old/

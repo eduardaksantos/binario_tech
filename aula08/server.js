@@ -3,7 +3,7 @@ const cors = require('cors');
 const veiculosRoutes = require('./src/routes/veiculosRoutes');
 
 const app = express();
-const PORT = 3000;
+const PORT = 3007;
 
 app.use(cors());
 app.use(express.json());

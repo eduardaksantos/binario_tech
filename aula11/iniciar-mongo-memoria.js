@@ -8,7 +8,7 @@ const fs = require('fs');
   console.log('MongoDB em memória rodando em:', uri);
 
   // Atualiza o .env automaticamente
-  const envContent = `MONGO_URI=${uri}binario_tech_nosql\nPORT=3000\n`;
+  const envContent = `MONGO_URI=${uri}binario_tech_nosql\nPORT=3007\n`;
   fs.writeFileSync('.env', envContent);
 
   console.log('.env atualizado! Agora rode "npm start" em outro terminal.');
