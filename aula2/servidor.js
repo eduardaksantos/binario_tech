@@ -29,3 +29,12 @@ app.listen(PORT,() => {
 	console.log(`Servidor rodando com sucesso na porta ${PORT}`);
 });
 
+
+app.get('/vw/info', (req, res) => {
+  res.json({
+    montadora: "Volkswagen",
+    modelo: "Constellation",
+    sistema_telemetria: "Rio",
+    status: "Ativo"
+  });
+});
