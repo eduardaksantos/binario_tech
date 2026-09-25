@@ -1,4 +1,4 @@
-EADME — Aula 04: CRUD e API REST
+README — Aula 04: CRUD e API REST
  Antes de começar
 
 Antes de executar os exercícios, inicie a API.
