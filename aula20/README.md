@@ -113,7 +113,7 @@ curl -i -X POST --data-binary @pequeno.bin http://localhost:8080/api/v1/proxy/in
 Esperado erro de payload excedido (HTTP 413 Request Entity Too Large):
 
 curl -i -X POST --data-binary @grande.bin http://localhost:8080/api/v1/proxy/info
-
+    
 
 Lição 4: Automação com Script Bash para Análise de Logs
 
@@ -130,7 +130,7 @@ Cole o conteúdo abaixo no arquivo:
 
 #!/bin/bash
 
-# Lê as últimas 15 linhas do log de acesso e filtra apenas requisições com status HTTP 200
+!Lê as últimas 15 linhas do log de acesso e filtra apenas requisições com status HTTP 200
 tail -n 15 /var/log/nginx/access.log | grep " 200 "
 
 
