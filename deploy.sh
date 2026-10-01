@@ -9,7 +9,7 @@ PORT=3007
 
 echo "[1/4] Atualizando código-fonte do repositório remoto..."
 cd "$(dirname "$0")" || exit 1
-git pull origin main
+git remote get-url origin >/dev/null 2>&1 && git pull origin main || echo "Sem remoto configurado, pulando pull"
 
 # ------- CÓDIGO NOVO (adicionar logo abaixo do git pull) -------
 COMMIT_HASH=$(git rev-parse --short HEAD)
