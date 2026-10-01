@@ -8,8 +8,8 @@ APP_NAME="api-cicd"
 PORT=3007
 
 echo "[1/4] Atualizando código-fonte do repositório remoto..."
-cd $REPO_DIR="$HOME/curso-pbe1/binario_tech"
-git pull origin main
+cd "$(dirname "$0")" || exit 1
+git remote get-url origin >/dev/null 2>&1 && git pull origin main || echo "Sem remoto configurado, pulando pull"
 
 # ------- CÓDIGO NOVO (adicionar logo abaixo do git pull) -------
 COMMIT_HASH=$(git rev-parse --short HEAD)
