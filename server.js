@@ -19,4 +19,3 @@ app.listen(PORT, () => {
   console.log(`[Binário Tech] Aplicação CI/CD ativa na porta ${PORT}`);
 });
 
-// teste
