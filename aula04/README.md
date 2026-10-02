@@ -1,7 +1,7 @@
 README — Aula 04: CRUD e API REST
  Antes de começar
 
-Antes de executar os exercícios, inicie a API.
+*Antes de executar os exercícios, inicie a API.*
 
 Se o package.json tiver:
 
@@ -22,6 +22,7 @@ Abra outro terminal para executar os exercícios.
 
 Se aparecer Couldn't connect to server, significa que a API não está rodando na porta 3000. Nesse caso, execute npm start antes do curl.
 
+========================================================================================================================================
 Exercício 01 — GET por ID
 
 Objetivo: Buscar somente o veículo de ID 1 e formatar o resultado com jq.
@@ -37,6 +38,7 @@ curl: (7) Failed to connect to localhost port 3000
 A API não está rodando. Execute:
 
 npm start
+========================================================================================================================
 Exercício 02 — POST
 
 Objetivo: Cadastrar um novo caminhão Volvo.
