@@ -6,3 +6,6 @@ node_modules/
 .env
 node_modules/
 aula13_old/
+node_modules/
+.env
+deploy_history.log
