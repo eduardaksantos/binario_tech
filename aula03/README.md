@@ -48,7 +48,7 @@ curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
 
-Bash
+Como verificar se a instalação foi bem-sucedida:
 #node -v && npm -v
 ---
 
