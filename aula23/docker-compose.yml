@@ -1,0 +1,25 @@
+name: aula23
+
+services:
+  redis:
+    image: redis:7
+    container_name: redis-aula23
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  api:
+    build: .
+    container_name: api-aula23
+    environment:
+      PORT: 3007
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3007:3007"
+    depends_on:
+      - redis
+
+volumes:
+  redis_data:

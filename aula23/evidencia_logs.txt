@@ -1,0 +1,53 @@
+=== Logs unificados (últimas 20 linhas + tempo real) ===
+Pressione Ctrl+C para sair.
+
+api-aula23  | Servidor rodando na porta 3007
+api-aula23  | 2026-10-08T19:07:02.205Z GET /api/v1/visitas
+api-aula23  | 2026-10-08T19:07:02.265Z DELETE /api/v1/visitas/reset
+api-aula23  | 2026-10-08T19:07:49.080Z GET /api/v1/visitas
+api-aula23  | 2026-10-08T19:08:39.156Z GET /api/v1/visitas
+api-aula23  | 2026-10-08T19:08:39.177Z DELETE /api/v1/visitas/reset
+api-aula23  | 2026-10-08T19:09:02.695Z DELETE /api/v1/visitas/reset
+api-aula23  | 2026-10-08T19:09:12.402Z GET /api/v1/visitas
+api-aula23  | 2026-10-08T19:09:12.420Z DELETE /api/v1/visitas/reset
+api-aula23  | 2026-10-08T19:10:36.367Z GET /api/v1/visitas
+api-aula23  | 2026-10-08T19:11:00.048Z GET /api/v1/visitas
+api-aula23  | 2026-10-08T19:11:00.071Z DELETE /api/v1/visitas/reset
+api-aula23  | 2026-10-08T19:12:02.862Z GET /api/v1/visitas
+api-aula23  | 2026-10-08T19:12:02.879Z GET /api/v1/visitas
+api-aula23  | 2026-10-08T19:12:02.898Z DELETE /api/v1/visitas/reset
+api-aula23  | 2026-10-08T19:12:02.914Z GET /api/v1/visitas
+redis-aula23  | 1:M 08 Oct 2026 19:09:12.642 * Removing the history file appendonly.aof.3.base.rdb in the background
+redis-aula23  | 1:M 08 Oct 2026 19:09:12.648 * Background AOF rewrite finished successfully
+redis-aula23  | 1:M 08 Oct 2026 19:10:36.496 * Creating AOF incr file appendonly.aof.5.incr.aof on background rewrite
+redis-aula23  | 1:M 08 Oct 2026 19:10:36.498 * Background append only file rewriting started by pid 43
+redis-aula23  | 43:C 08 Oct 2026 19:10:36.505 * Successfully created the temporary AOF base file temp-rewriteaof-bg-43.aof
+redis-aula23  | 43:C 08 Oct 2026 19:10:36.505 * Fork CoW for AOF rewrite: current 0 MB, peak 0 MB, average 0 MB
+redis-aula23  | 1:M 08 Oct 2026 19:10:36.600 * Background AOF rewrite terminated with success
+redis-aula23  | 1:M 08 Oct 2026 19:10:36.600 * Successfully renamed the temporary AOF base file temp-rewriteaof-bg-43.aof into appendonly.aof.5.base.rdb
+redis-aula23  | 1:M 08 Oct 2026 19:10:36.605 * Removing the history file appendonly.aof.4.incr.aof in the background
+redis-aula23  | 1:M 08 Oct 2026 19:10:36.605 * Removing the history file appendonly.aof.4.base.rdb in the background
+redis-aula23  | 1:M 08 Oct 2026 19:10:36.610 * Background AOF rewrite finished successfully
+redis-aula23  | 1:M 08 Oct 2026 19:11:00.218 * Creating AOF incr file appendonly.aof.6.incr.aof on background rewrite
+redis-aula23  | 1:M 08 Oct 2026 19:11:00.219 * Background append only file rewriting started by pid 49
+redis-aula23  | 49:C 08 Oct 2026 19:11:00.226 * Successfully created the temporary AOF base file temp-rewriteaof-bg-49.aof
+redis-aula23  | 49:C 08 Oct 2026 19:11:00.227 * Fork CoW for AOF rewrite: current 0 MB, peak 0 MB, average 0 MB
+redis-aula23  | 1:M 08 Oct 2026 19:11:00.287 * Background AOF rewrite terminated with success
+redis-aula23  | 1:M 08 Oct 2026 19:11:00.287 * Successfully renamed the temporary AOF base file temp-rewriteaof-bg-49.aof into appendonly.aof.6.base.rdb
+redis-aula23  | 1:M 08 Oct 2026 19:11:00.293 * Removing the history file appendonly.aof.5.incr.aof in the background
+redis-aula23  | 1:M 08 Oct 2026 19:11:00.293 * Removing the history file appendonly.aof.5.base.rdb in the background
+redis-aula23  | 1:M 08 Oct 2026 19:11:00.298 * Background AOF rewrite finished successfully
+api-aula23    | 2026-10-08T19:12:05.966Z GET /api/v1/visitas
+api-aula23    | 2026-10-08T19:12:05.982Z DELETE /api/v1/visitas/reset
+redis-aula23  | 1:M 08 Oct 2026 19:12:06.105 * Creating AOF incr file appendonly.aof.7.incr.aof on background rewrite
+redis-aula23  | 1:M 08 Oct 2026 19:12:06.106 * Background append only file rewriting started by pid 56
+redis-aula23  | 56:C 08 Oct 2026 19:12:06.112 * Successfully created the temporary AOF base file temp-rewriteaof-bg-56.aof
+redis-aula23  | 56:C 08 Oct 2026 19:12:06.113 * Fork CoW for AOF rewrite: current 0 MB, peak 0 MB, average 0 MB
+redis-aula23  | 1:M 08 Oct 2026 19:12:06.200 * Background AOF rewrite terminated with success
+redis-aula23  | 1:M 08 Oct 2026 19:12:06.200 * Successfully renamed the temporary AOF base file temp-rewriteaof-bg-56.aof into appendonly.aof.7.base.rdb
+redis-aula23  | 1:M 08 Oct 2026 19:12:06.209 * Removing the history file appendonly.aof.6.incr.aof in the background
+redis-aula23  | 1:M 08 Oct 2026 19:12:06.209 * Removing the history file appendonly.aof.6.base.rdb in the background
+redis-aula23  | 1:M 08 Oct 2026 19:12:06.218 * Background AOF rewrite finished successfully
+
+
+Monitoramento encerrado.
