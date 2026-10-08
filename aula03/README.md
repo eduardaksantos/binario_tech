@@ -49,7 +49,7 @@ sudo apt-get install -y nodejs
 
 
 Como verificar se a instalação foi bem-sucedida:
-#node -v && npm -v
+node -v && npm -v
 ---
 
 ## Exercício 01 – GET com cURL + jq (somente `modelo`)
