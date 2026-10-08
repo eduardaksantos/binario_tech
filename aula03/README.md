@@ -34,7 +34,17 @@ jq --version
 http --version
 node -v && npm -v
 ```
+Como instalar o Node.js
+Execute o comando abaixo no terminal para instalar a versão LTS recomendada usando o repositório oficial da NodeSource:
 
+#Bash
+#curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+#sudo apt-get install -y nodejs
+#Como verificar se a instalação foi bem-sucedida
+#Após a conclusão, rode novamente o comando para confirmar:
+
+Bash
+#node -v && npm -v
 ---
 
 ## Exercício 01 – GET com cURL + jq (somente `modelo`)
