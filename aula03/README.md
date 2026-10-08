@@ -27,6 +27,9 @@ sudo apt update && sudo apt install -y curl jq httpie
 
 # instalar dependências do projeto (lê o package.json)
 npm install
+
+# subir aplicação
+# node telemetria.js
 ```
 
 Depois, subir a aplicação (seção 0.1) e **abrir outra aba** para rodar os exercícios.
