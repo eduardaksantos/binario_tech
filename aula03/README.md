@@ -43,6 +43,11 @@ Execute o comando abaixo no terminal para instalar a versão LTS recomendada usa
 #Como verificar se a instalação foi bem-sucedida
 #Após a conclusão, rode novamente o comando para confirmar:
 
+
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+
 Bash
 #node -v && npm -v
 ---
