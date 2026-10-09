@@ -315,3 +315,105 @@ git add .
 git commit -m "Aula 06: persistência em disco com fs/promises e CRUD de ocorrências"
 git push origin "$(git branch --show-current)"
 ```
+
+- `findIndex` procura a posição da ocorrência com o ID. Se não achar, devolve `404`.
+- `splice` remove a ocorrência da lista e `salvarOcorrencia` grava o arquivo atualizado.
+
+**Passo 1.** Veja os IDs existentes:
+
+```bash
+jq '.[].id' ocorrencias.json
+```
+
+**Passo 2.** Remova o primeiro registro (o ID é pego automaticamente do arquivo):
+
+```bash
+ID=$(jq '.[0].id' ocorrencias.json)
+http DELETE localhost:3007/api/v1/ocorrencias/$ID
+```
+
+Esperado: `200 OK` com a mensagem de sucesso.
+
+**Passo 3.** Confirme que sumiu do arquivo:
+
+```bash
+cat ocorrencias.json
+```
+
+**Passo 4.** Teste um ID que não existe:
+
+```bash
+http DELETE localhost:3007/api/v1/ocorrencias/999
+```
+
+Esperado: `404 Not Found`.
+
+---
+
+## Exercício 5: Script `limpar_dados.sh`
+
+**Objetivo:** encerrar o processo Node.js e excluir o `ocorrencias.json` para resetar o ambiente de testes.
+
+**Passo 1.** Crie o script:
+
+```bash
+cat > limpar_dados.sh << 'EOF'
+#!/bin/bash
+cd "$(dirname "$0")" || exit 1
+
+ARQUIVO="ocorrencias.json"
+PROCESSO="ocorrencias_api.js"
+
+if pgrep -f "$PROCESSO" > /dev/null; then
+  pkill -f "$PROCESSO"
+  echo "Processo $PROCESSO encerrado."
+else
+  echo "Nenhum processo $PROCESSO em execução."
+fi
+
+if [ -f "$ARQUIVO" ]; then
+  rm "$ARQUIVO"
+  echo "Arquivo $ARQUIVO excluído."
+else
+  echo "Arquivo $ARQUIVO não encontrado."
+fi
+
+echo "Ambiente resetado."
+EOF
+```
+
+**Passo 2.** Dê permissão e execute:
+
+```bash
+chmod +x limpar_dados.sh
+./limpar_dados.sh
+```
+
+**Passo 3.** Confirme o reset:
+
+```bash
+pgrep -af ocorrencias_api
+ls ocorrencias.json
+```
+
+Esperado: o primeiro não mostra nada e o segundo dá `No such file or directory`.
+
+**Passo 4.** Suba a API de novo no Terminal 1:
+
+```bash
+node ocorrencias_api.js
+```
+
+> O script encerra só o `ocorrencias_api.js`. Nunca use `kill` nos processos de `ps aux | grep node`, porque alguns são do editor do Cloud Shell.
+
+---
+
+## Subir para o Git
+
+```bash
+cd ~/curso-pbe1/binario_tech/aula06
+echo "node_modules/" >> .gitignore
+git add .
+git commit -m "Aula 06: persistência em disco com fs/promises e CRUD de ocorrências"
+git push origin "$(git branch --show-current)"
+```
