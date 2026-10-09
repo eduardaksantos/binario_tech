@@ -1,0 +1,33 @@
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Connection: keep-alive
+Content-Length: 308
+Content-Type: application/json; charset=utf-8
+Date: Fri, 09 Oct 2026 18:52:25 GMT
+ETag: W/"134-fWU9djT7itaXPqQOht8m/pp6oUQ"
+Keep-Alive: timeout=5
+X-Powered-By: Express
+
+[
+    {
+        "data_registro": "2026-10-09T18:48:41.204Z",
+        "descricao": "Falha no freio",
+        "gravidade": "MEDIA",
+        "id": 1791571721204,
+        "montadora": "Volvo",
+        "placa": "ABC1D23"
+    },
+    {
+        "data_registro": "2026-10-09T18:48:41.741Z",
+        "descricao": "Vazamento de óleo",
+        "gravidade": "MEDIA",
+        "id": 1791571721741,
+        "montadora": "Scania",
+        "placa": "XYZ4E56"
+    }
+]
+
+Array? true
+API: 2
+Arquivo: 2
+Conteudo identico: OK

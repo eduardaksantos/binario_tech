@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1791574199270,
+    "montadora": "Volvo",
+    "placa": "ABC1D23",
+    "descricao": "Falha no freio",
+    "gravidade": "MEDIA",
+    "data_registro": "2026-10-09T19:29:59.270Z"
+  },
+  {
+    "id": 1791574199794,
+    "montadora": "Scania",
+    "placa": "XYZ4E56",
+    "descricao": "Vazamento de óleo",
+    "gravidade": "MEDIA",
+    "data_registro": "2026-10-09T19:29:59.794Z"
+  }
+]

@@ -1,231 +1,273 @@
-# Aula 06: Persistência em Arquivo JSON (API de Ocorrências)
+# Aula 06: Persistência em Disco, `fs/promises` e CRUD de Ocorrências da Frota
 
-Guia de consulta rápida para a prova (exercícios 1 a 5).
-Repositório: `~/curso-pbe1/binario_tech` | Pasta: `aula06` | Arquivo da API: `ocorrencias_api.js`
+API REST em Node.js/Express que guarda as ocorrências da frota no arquivo `ocorrencias.json`, usando o módulo nativo `fs/promises`.
 
-Estrutura da aula:
+- Porta: **3007**
+- Arquivo de dados: `ocorrencias.json`
+- Arquivo principal: `ocorrencias_api.js`
 
-```text
-aula06/
-  ocorrencias_api.js        <- API (lê e grava no arquivo)
-  ocorrencias.json          <- "banco de dados" em arquivo (gerado pela API)
-  limpar_dados.sh           <- reseta o ambiente (Ex. 5)
-  testar_persistencia.sh    <- testa se os dados sobrevivem a reinício
-```
+## Como usar (leia antes)
 
-Ideia central da aula: os dados ficam num **arquivo** e não na memória. Por isso, ao reiniciar a API, eles continuam lá.
+Use **dois terminais** na pasta `aula06`:
+
+- **Terminal 1:** roda a API e fica ocupado. Não digite mais nada nele.
+- **Terminal 2:** roda os testes (`http`, `jq`, `cat`).
+
+Se aparecer `200~` antes dos comandos colados, rode `printf '\e[?2004l'`.
 
 ## Preparação
 
-Descobrir porta e rotas:
+Terminal 1:
 
 ```bash
 cd ~/curso-pbe1/binario_tech/aula06
-grep -n "PORT\|listen" ocorrencias_api.js
-grep -n "app\.\(get\|post\|put\|patch\|delete\)" ocorrencias_api.js
-grep -n "ocorrencias.json\|readFileSync\|writeFileSync" ocorrencias_api.js
-```
-
-Instalar ferramentas (se faltarem):
-
-```bash
-sudo apt install -y jq httpie
-http --version
-jq --version
-```
-
-Subir a API:
-
-```bash
 npm install
-node ocorrencias_api.js &
+node ocorrencias_api.js
 ```
 
-A `aula21` (processo `api-cicd` no PM2) usa a porta 3007. Se a aula06 usar a mesma porta, pare a outra antes e religue depois:
+Espere a mensagem `API de Ocorrencias ativa na porta 3007`.
+
+Terminal 2:
 
 ```bash
-pm2 stop api-cicd          # antes
-pm2 start api-cicd         # depois
+cd ~/curso-pbe1/binario_tech/aula06
 ```
 
-Variável usada nos comandos (ajuste a porta se for diferente; o enunciado não cita porta):
+Rotas da API:
+
+| Método | Rota | O que faz |
+|---|---|---|
+| GET | `/api/v1/ocorrencias` | lista todas |
+| POST | `/api/v1/ocorrencias` | cadastra (montadora, placa, descricao) |
+| GET | `/api/v1/ocorrencias/montadora/:nome` | filtra por montadora |
+| DELETE | `/api/v1/ocorrencias/:id` | remove por ID |
+
+---
+
+## Exercício 1: GET com HTTPie e validação do array
+
+**Objetivo:** fazer um GET em `/api/v1/ocorrencias` e validar que a resposta é um array com os registros do `ocorrencias.json`.
+
+**Passo 1.** Cadastre dados de teste (se o arquivo estiver vazio):
 
 ```bash
-BASE="localhost:3007/api/v1/ocorrencias"
+http POST localhost:3007/api/v1/ocorrencias montadora="Volvo" placa="ABC1D23" descricao="Falha no freio"
+http POST localhost:3007/api/v1/ocorrencias montadora="Scania" placa="XYZ4E56" descricao="Vazamento de óleo"
 ```
 
-Os campos do JSON (`id`, `montadora`, ...) devem seguir o que a `ocorrencias_api.js` usa. Confira no código e ajuste se os nomes forem diferentes.
+Esperado: `201 Created` nos dois.
 
-## Exercício 1: GET com httpie e validação do array
+**Passo 2.** Faça o GET:
 
 ```bash
-http GET $BASE
+http GET localhost:3007/api/v1/ocorrencias
 ```
 
-Esperado: `HTTP/1.1 200 OK` e um **array** `[ ... ]` com os registros.
+Esperado: `200 OK` e um array com os registros.
 
-Validar que é array e comparar com o arquivo:
+**Passo 3.** Valide que é um array (esperado: `true`):
 
 ```bash
-http --body GET $BASE | jq 'type'                    # deve mostrar "array"
-http --body GET $BASE | jq 'length'                  # quantidade na API
-jq 'length' ocorrencias.json                         # quantidade no arquivo (deve ser igual)
+http --body GET localhost:3007/api/v1/ocorrencias | jq 'type == "array"'
 ```
 
-Se `ocorrencias.json` ainda não existe, faça um POST antes para a API criá-lo:
+**Passo 4.** Valide que o conteúdo é igual ao do arquivo (esperado: `OK`):
 
 ```bash
-http POST $BASE montadora=Scania descricao="Falha no freio"
+diff <(http --body GET localhost:3007/api/v1/ocorrencias | jq -S .) <(jq -S . ocorrencias.json) && echo OK || echo FALHA
 ```
 
-## Exercício 2: filtrar "Scania" com jq
+**Passo 5 (opcional).** Salve a evidência:
+
+```bash
+http --print=hb --pretty=format GET localhost:3007/api/v1/ocorrencias > evidencia_get.txt
+cat evidencia_get.txt
+```
+
+---
+
+## Exercício 2: Filtrar com `jq` apenas a Scania
+
+**Objetivo:** usar o `jq` para filtrar do `ocorrencias.json` só os registros da montadora "Scania".
+
+```bash
+jq '.[] | select(.montadora == "Scania")' ocorrencias.json
+```
+
+- `.[]` percorre cada registro do array.
+- `select(...)` mantém só os que atendem à condição.
+- `.montadora == "Scania"` é a condição.
+
+Para manter o resultado como array:
 
 ```bash
 jq '[.[] | select(.montadora == "Scania")]' ocorrencias.json
 ```
 
-Versões úteis:
+Esperado: só o registro da Scania (placa `XYZ4E56`).
 
-```bash
-# ignorando maiúsculas/minúsculas
-jq '[.[] | select(.montadora | ascii_downcase == "scania")]' ocorrencias.json
+---
 
-# só contar
-jq '[.[] | select(.montadora == "Scania")] | length' ocorrencias.json
-```
+## Exercício 3: Rota GET `/api/v1/ocorrencias/montadora/:nome`
 
-Leitura do filtro: `.[]` percorre cada item, `select(...)` mantém só os que atendem à condição, e os colchetes `[ ]` juntam o resultado de volta em array.
+**Objetivo:** filtrar as ocorrências do arquivo pela montadora informada na URL.
 
-## Exercício 3: GET /api/v1/ocorrencias/montadora/:nome
-
-Funções de apoio para ler e gravar o arquivo (se o código ainda não tiver):
+**Código da rota** (em `ocorrencias_api.js`, antes do `app.listen`):
 
 ```js
-const fs = require('fs');
-const path = require('path');
-const ARQUIVO = path.join(__dirname, 'ocorrencias.json');
-
-function lerDados() {
-  if (!fs.existsSync(ARQUIVO)) return [];
-  return JSON.parse(fs.readFileSync(ARQUIVO, 'utf8'));
-}
-
-function salvarDados(dados) {
-  fs.writeFileSync(ARQUIVO, JSON.stringify(dados, null, 2));
-}
-```
-
-A rota:
-
-```js
-app.get('/api/v1/ocorrencias/montadora/:nome', (req, res) => {
-  const nome = req.params.nome.toLowerCase();
-  const filtradas = lerDados().filter(o => (o.montadora || '').toLowerCase() === nome);
-  res.status(200).json(filtradas);
+app.get('/api/v1/ocorrencias/montadora/:nome', async (req, res) => {
+    try {
+        const { nome } = req.params;
+        const ocorrencias = await lerOcorrencias();
+        const filtradas = ocorrencias.filter(
+            (o) => o.montadora.toLowerCase() === nome.toLowerCase()
+        );
+        res.status(200).json(filtradas);
+    } catch (erro) {
+        res.status(500).json({ erro: 'Erro ao buscar ocorrências.' });
+    }
 });
 ```
 
-Importante: declare essa rota **antes** de qualquer rota `/api/v1/ocorrencias/:id`. Se ficar depois, o Express entende `montadora` como se fosse um ID.
+Se alterou o código, reinicie a API (`Ctrl+C` no Terminal 1 e `node ocorrencias_api.js`).
 
-Reinicie a API e teste:
+**Testes** (Terminal 2):
 
 ```bash
-http GET $BASE/montadora/Scania
-http GET $BASE/montadora/Volvo
+http GET localhost:3007/api/v1/ocorrencias/montadora/Scania
+http GET localhost:3007/api/v1/ocorrencias/montadora/Volvo
+http GET localhost:3007/api/v1/ocorrencias/montadora/Ford
 ```
 
-Esperado: array só com a montadora pedida (ou `[]` se não houver).
+Esperado:
 
-## Exercício 4: DELETE /api/v1/ocorrencias/:id
+- Scania: 1 registro
+- Volvo: os registros da Volvo
+- Ford: `[]`
+
+---
+
+## Exercício 4: Rota DELETE `/api/v1/ocorrencias/:id`
+
+**Objetivo:** remover do arquivo JSON a ocorrência com o ID informado.
+
+**Código da rota:**
 
 ```js
-app.delete('/api/v1/ocorrencias/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const dados = lerDados();
-  const indice = dados.findIndex(o => o.id === id);
+app.delete('/api/v1/ocorrencias/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const ocorrencias = await lerOcorrencias();
 
-  if (indice === -1) {
-    return res.status(404).json({ erro: "Ocorrência não encontrada." });
-  }
+        const indice = ocorrencias.findIndex((o) => o.id === Number(id));
+        if (indice === -1) {
+            return res.status(404).json({ erro: `Ocorrência com id ${id} não encontrada.` });
+        }
 
-  const removida = dados.splice(indice, 1)[0];
-  salvarDados(dados);
-  res.status(200).json({ mensagem: "Ocorrência removida.", removida });
+        const [removida] = ocorrencias.splice(indice, 1);
+        await salvarOcorrencia(ocorrencias);
+
+        res.status(200).json({ mensagem: 'Ocorrência removida com sucesso.', ocorrencia: removida });
+    } catch (erro) {
+        res.status(500).json({ erro: 'Erro ao remover ocorrência.' });
+    }
 });
 ```
 
-Reinicie a API e teste:
+**Passo 1.** Veja os IDs existentes:
 
 ```bash
-http GET $BASE                    # veja os IDs existentes
-http DELETE $BASE/1               # remove o ID 1 (200)
-jq '.[].id' ocorrencias.json      # o ID 1 não deve mais aparecer no ARQUIVO
-http DELETE $BASE/99              # ID inexistente: deve dar 404
+jq '.[].id' ocorrencias.json
 ```
 
-Prova da persistência: o registro precisa sumir do **arquivo**, e não só da resposta da API. Se o `id` na sua API for texto e não número, troque `parseInt(...)` por `req.params.id` e compare com `String(o.id)`.
-
-## Exercício 5: limpar_dados.sh
+**Passo 2.** Remova um ID existente (troque pelo número real):
 
 ```bash
+http DELETE localhost:3007/api/v1/ocorrencias/COLOQUE_O_ID_AQUI
+```
+
+Esperado: `200 OK` com a mensagem de sucesso.
+
+**Passo 3.** Confirme que sumiu do arquivo:
+
+```bash
+cat ocorrencias.json
+```
+
+**Passo 4.** Teste um ID que não existe:
+
+```bash
+http DELETE localhost:3007/api/v1/ocorrencias/999
+```
+
+Esperado: `404 Not Found`.
+
+---
+
+## Exercício 5: Script `limpar_dados.sh`
+
+**Objetivo:** encerrar o processo Node.js e excluir o `ocorrencias.json` para resetar o ambiente de testes.
+
+**Passo 1.** Crie o script:
+
+```bash
+cat > limpar_dados.sh << 'EOF'
 #!/bin/bash
 cd "$(dirname "$0")" || exit 1
 
-echo "Encerrando o processo da API..."
-pkill -f "node ocorrencias_api.js" && echo "Processo encerrado." || echo "Nenhum processo encontrado."
+ARQUIVO="ocorrencias.json"
+PROCESSO="ocorrencias_api.js"
 
-echo "Removendo ocorrencias.json..."
-rm -f ocorrencias.json && echo "Arquivo removido."
+if pgrep -f "$PROCESSO" > /dev/null; then
+  pkill -f "$PROCESSO"
+  echo "Processo $PROCESSO encerrado."
+else
+  echo "Nenhum processo $PROCESSO em execução."
+fi
+
+if [ -f "$ARQUIVO" ]; then
+  rm "$ARQUIVO"
+  echo "Arquivo $ARQUIVO excluído."
+else
+  echo "Arquivo $ARQUIVO não encontrado."
+fi
 
 echo "Ambiente resetado."
+EOF
 ```
 
-Rodar:
+**Passo 2.** Dê permissão e execute:
 
 ```bash
 chmod +x limpar_dados.sh
 ./limpar_dados.sh
-ls ocorrencias.json                                   # deve dar: No such file or directory
-ps aux | grep "ocorrencias_api" | grep -v grep        # não deve mostrar nada
 ```
 
-Cuidado: `pkill -f "node ocorrencias_api.js"` mata só a API desta aula. **Não use `pkill node`**, porque derrubaria todos os processos Node, inclusive o PM2 e a `api-cicd` da aula21.
-
-Se você iniciou com `node ocorrencias_api.js &` e o nome do arquivo for diferente, ajuste o padrão do `pkill`.
-
-## Teste de persistência (aula inteira)
+**Passo 3.** Confirme o reset:
 
 ```bash
-node ocorrencias_api.js &
-http POST $BASE montadora=Scania descricao="Teste"
-pkill -f "node ocorrencias_api.js"           # derruba a API
-node ocorrencias_api.js &                    # sobe de novo
-http GET $BASE                               # o registro continua lá
+pgrep -af ocorrencias_api
+ls ocorrencias.json
 ```
 
-Se o registro continua, a persistência em arquivo está funcionando.
+Esperado: o primeiro não mostra nada e o segundo dá `No such file or directory`.
 
-## Problemas comuns
+**Passo 4.** Suba a API de novo no Terminal 1:
 
-| Sintoma | Solução |
-|---|---|
-| `Connection refused` | API fora do ar ou porta errada: `grep -n listen ocorrencias_api.js` |
-| `EADDRINUSE` | `pm2 stop api-cicd` ou `pkill -f "node ocorrencias_api.js"` |
-| `http: command not found` | `sudo apt install -y httpie` |
-| `jq: command not found` | `sudo apt install -y jq` |
-| `ocorrencias.json` não existe | faça um POST primeiro; a API cria o arquivo ao gravar |
-| `/montadora/Scania` retorna 404 ou erro de ID | a rota está depois de `/:id`; mova para antes |
-| DELETE retorna 200 mas o item continua no arquivo | faltou `salvarDados(dados)` |
-| Mudança no código não surte efeito | reinicie a API depois de editar |
-| `jq: parse error` | o arquivo JSON está corrompido ou vazio: `./limpar_dados.sh` e recomece |
+```bash
+node ocorrencias_api.js
+```
 
-## Pontos que caem na prova
+> O script encerra só o `ocorrencias_api.js`. Nunca use `kill` nos processos de `ps aux | grep node`, porque alguns são do editor do Cloud Shell.
 
-1. Persistência em arquivo: ler com `fs.readFileSync`, converter com `JSON.parse`, gravar com `fs.writeFileSync` e `JSON.stringify`.
-2. Rotas específicas (`/montadora/:nome`) vêm **antes** das genéricas (`/:id`).
-3. `req.params` guarda o que vem na URL; `req.query` guarda o que vem depois do `?`.
-4. DELETE de ID inexistente retorna 404; sucesso retorna 200 (ou 204).
-5. `jq 'select(...)'` filtra; `jq length` conta; `jq type` mostra o tipo.
-6. `pkill -f "node arquivo.js"` mata só a API desejada; `pkill node` mata tudo.
-7. `rm -f` não dá erro se o arquivo não existir.
-8. Não versione `node_modules`, `.env`, `*.log` nem o `ocorrencias.json` de teste.
+---
+
+## Subir para o Git
+
+```bash
+cd ~/curso-pbe1/binario_tech/aula06
+echo "node_modules/" >> .gitignore
+git add .
+git commit -m "Aula 06: persistência em disco com fs/promises e CRUD de ocorrências"
+git push origin "$(git branch --show-current)"
+```
