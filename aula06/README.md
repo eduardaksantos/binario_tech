@@ -1,6 +1,6 @@
 # Aula 06: Persistência em Disco, `fs/promises` e CRUD de Ocorrências da Frota
 
-API REST em Node.js/Express que guarda as ocorrências da frota no arquivo `ocorrencias.json`, usando o módulo nativo `fs/promises`.
+API REST em Node.js/Express que guarda as ocorrências da frota no arquivo `ocorrencias.json`, usando o módulo nativo `fs/promises` (em vez de guardar tudo na memória, os dados sobrevivem ao reinício do servidor).
 
 - Porta: **3007**
 - Arquivo de dados: `ocorrencias.json`
@@ -33,7 +33,7 @@ Terminal 2:
 cd ~/curso-pbe1/binario_tech/aula06
 ```
 
-Rotas da API:
+## Rotas da API
 
 | Método | Rota | O que faz |
 |---|---|---|
@@ -41,6 +41,37 @@ Rotas da API:
 | POST | `/api/v1/ocorrencias` | cadastra (montadora, placa, descricao) |
 | GET | `/api/v1/ocorrencias/montadora/:nome` | filtra por montadora |
 | DELETE | `/api/v1/ocorrencias/:id` | remove por ID |
+
+## Persistência com `fs/promises`
+
+Funções que leem e gravam o arquivo `ocorrencias.json` (código do `ocorrencias_api.js`):
+
+```js
+const ARQUIVO_DADOS = path.join(__dirname, 'ocorrencias.json');
+
+app.use(cors());
+app.use(express.json());
+
+// Função Auxiliar: Ler Arquivo JSON
+async function lerOcorrencias() {
+    try {
+        const dados = await fs.readFile(ARQUIVO_DADOS, 'utf-8');
+        return JSON.parse(dados);
+    } catch (erro) {
+        await fs.writeFile(ARQUIVO_DADOS, '[]', 'utf-8');
+        return [];
+    }
+}
+
+// Função Auxiliar: Salvar no Arquivo JSON
+async function salvarOcorrencia(ocorrencias) {
+    await fs.writeFile(ARQUIVO_DADOS, JSON.stringify(ocorrencias, null, 2), 'utf-8');
+}
+```
+
+- `fs.readFile` lê o conteúdo do arquivo (texto) e `JSON.parse` transforma em array.
+- `fs.writeFile` grava o array de volta no arquivo com `JSON.stringify`.
+- Como cada rota lê o arquivo a cada requisição, os dados editados sempre aparecem na resposta.
 
 ---
 
@@ -112,9 +143,10 @@ Esperado: só o registro da Scania (placa `XYZ4E56`).
 
 **Objetivo:** filtrar as ocorrências do arquivo pela montadora informada na URL.
 
-**Código da rota** (em `ocorrencias_api.js`, antes do `app.listen`):
+**Código da rota** (em `ocorrencias_api.js`):
 
 ```js
+// ROTA 3: Filtrar ocorrências por montadora
 app.get('/api/v1/ocorrencias/montadora/:nome', async (req, res) => {
     try {
         const { nome } = req.params;
@@ -124,10 +156,13 @@ app.get('/api/v1/ocorrencias/montadora/:nome', async (req, res) => {
         );
         res.status(200).json(filtradas);
     } catch (erro) {
-        res.status(500).json({ erro: 'Erro ao buscar ocorrências.' });
+        res.status(500).json({ erro: "Erro ao filtrar ocorrências por montadora." });
     }
 });
 ```
+
+- `req.params.nome` pega o valor que vem na URL.
+- `.filter(...)` mantém só as ocorrências da montadora pedida, sem diferenciar maiúsculas de minúsculas.
 
 Se alterou o código, reinicie a API (`Ctrl+C` no Terminal 1 e `node ocorrencias_api.js`).
 
@@ -151,28 +186,36 @@ Esperado:
 
 **Objetivo:** remover do arquivo JSON a ocorrência com o ID informado.
 
-**Código da rota:**
+**Código da rota** (em `ocorrencias_api.js`):
 
 ```js
+// ROTA 4: Deletar ocorrência por ID
 app.delete('/api/v1/ocorrencias/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const ocorrencias = await lerOcorrencias();
 
         const indice = ocorrencias.findIndex((o) => o.id === Number(id));
+
         if (indice === -1) {
             return res.status(404).json({ erro: `Ocorrência com id ${id} não encontrada.` });
         }
 
-        const [removida] = ocorrencias.splice(indice, 1);
+        const [ocorrenciaRemovida] = ocorrencias.splice(indice, 1);
         await salvarOcorrencia(ocorrencias);
 
-        res.status(200).json({ mensagem: 'Ocorrência removida com sucesso.', ocorrencia: removida });
+        res.status(200).json({
+            mensagem: "Ocorrência removida com sucesso.",
+            ocorrencia: ocorrenciaRemovida
+        });
     } catch (erro) {
-        res.status(500).json({ erro: 'Erro ao remover ocorrência.' });
+        res.status(500).json({ erro: "Erro ao remover ocorrência do disco." });
     }
 });
 ```
+
+- `findIndex` procura a posição da ocorrência com o ID. Se não achar, devolve `404`.
+- `splice` remove a ocorrência da lista e `salvarOcorrencia` grava o arquivo atualizado.
 
 **Passo 1.** Veja os IDs existentes:
 
@@ -180,10 +223,11 @@ app.delete('/api/v1/ocorrencias/:id', async (req, res) => {
 jq '.[].id' ocorrencias.json
 ```
 
-**Passo 2.** Remova um ID existente (troque pelo número real):
+**Passo 2.** Remova o primeiro registro (o ID é pego automaticamente do arquivo):
 
 ```bash
-http DELETE localhost:3007/api/v1/ocorrencias/COLOQUE_O_ID_AQUI
+ID=$(jq '.[0].id' ocorrencias.json)
+http DELETE localhost:3007/api/v1/ocorrencias/$ID
 ```
 
 Esperado: `200 OK` com a mensagem de sucesso.
