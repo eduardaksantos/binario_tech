@@ -1,246 +1,204 @@
-# Aula 04: API REST de Frota (CRUD)
+# Aula 04 - Anatomia de uma Requisicao e Resposta HTTP
 
-Guia de consulta rápida para a prova (exercícios 1 a 8).
-Repositório: `~/curso-pbe1/binario_tech` | Pasta: `aula04` | Arquivo da API: `frota_api.js`
+API de Frotas (`frota_api.js`) na **porta 3007**. Exercicios 1 a 8.
 
-## Preparação
+## Preparacao
 
-Descobrir porta e rotas da API:
-
-```bash
+~~~bash
 cd ~/curso-pbe1/binario_tech/aula04
-grep -n "PORT\|listen" frota_api.js
-grep -n "app\.\(get\|post\|put\|patch\|delete\)" frota_api.js
-```
-
-Subir a API:
-
-```bash
+sudo apt install -y jq
 npm install
-node frota_api.js &
-```
+~~~
 
-Atenção: a `aula21` (processo `api-cicd` no PM2) usa a porta 3007. Se a aula04 usar a mesma porta, pare a outra antes e religue depois:
+**Aba 1** (deixe aberta, sem Ctrl+C):
 
-```bash
-pm2 stop api-cicd          # antes
-pm2 start api-cicd         # depois, para religar a aula21
-```
+~~~bash
+node frota_api.js
+~~~
 
-Para parar a API da aula04 que está em segundo plano: `kill %1` (ou `pkill -f frota_api.js`).
+**Aba 2** (todos os exercicios abaixo):
 
-Variável usada nos comandos abaixo (ajuste a porta se for diferente):
+~~~bash
+cd ~/curso-pbe1/binario_tech/aula04
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3007/api/v1/veiculos
+~~~
 
-```bash
-BASE="http://localhost:3007/api/v1/veiculos"
-```
+Tem que imprimir `200`.
 
-O enunciado cita a porta 3000. Use a porta que o `grep` acima mostrou.
+## Exercicio 01 - GET veiculo ID 1 com jq
 
-Os campos do JSON (`montadora`, `modelo`, `placa`, `status`) devem seguir o que a `frota_api.js` espera. Confira no código e ajuste se os nomes forem diferentes.
+~~~bash
+curl -s http://localhost:3007/api/v1/veiculos/1 | jq
+~~~
 
-## Exercício 1: GET de um veículo (ID 1) com jq
+## Exercicio 02 - POST caminhao Volvo (esperado 201)
 
-```bash
-curl -s $BASE/1 | jq .
-```
-
-Esperado: JSON formatado do veículo 1. Se aparecer `command not found: jq`, instale: `sudo apt install -y jq`.
-
-## Exercício 2: POST de um caminhão Volvo (status 201)
-
-```bash
-curl -i -X POST $BASE \
+~~~bash
+curl -s -w "\nStatus: %{http_code}\n" -X POST http://localhost:3007/api/v1/veiculos \
   -H "Content-Type: application/json" \
-  -d '{"montadora":"Volvo","modelo":"FH 540","placa":"KLL-9090"}'
-```
+  -d '{"placa": "KLL-9090", "montadora": "Volvo", "modelo": "FH 540"}'
+~~~
 
-Esperado: `HTTP/1.1 201 Created` e o veículo no corpo da resposta.
+## Exercicio 03 - POST sem placa (esperado 400)
 
-Só o código de status:
-
-```bash
-curl -s -o /dev/null -w "%{http_code}\n" -X POST $BASE \
+~~~bash
+curl -s -w "\nStatus: %{http_code}\n" -X POST http://localhost:3007/api/v1/veiculos \
   -H "Content-Type: application/json" \
-  -d '{"montadora":"Volvo","modelo":"FH 540","placa":"KLL-9091"}'
-```
+  -d '{"montadora": "Volvo", "modelo": "FH 540"}'
+~~~
 
-Se a API bloquear placa repetida, troque a placa em cada teste.
+## Exercicio 04 - GET com filtro status=DISPONIVEL
 
-## Exercício 3: POST sem o campo placa (status 400)
+~~~bash
+curl -s "http://localhost:3007/api/v1/veiculos?status=DISPONIVEL" | jq
+~~~
 
-```bash
-curl -i -X POST $BASE \
+## Exercicio 05 - PATCH status do ID 3 para EM_ROTA
+
+~~~bash
+curl -s -X PATCH http://localhost:3007/api/v1/veiculos/3/status \
   -H "Content-Type: application/json" \
-  -d '{"montadora":"Volvo","modelo":"FH 540"}'
-```
+  -d '{"status": "EM_ROTA"}' | jq
+~~~
 
-Esperado: `HTTP/1.1 400 Bad Request` e uma mensagem de erro dizendo que a placa é obrigatória.
+## Exercicio 06 - ID inexistente (esperado 404)
 
-Se retornar 201, falta a validação no `POST`:
-
-```js
-if (!req.body.placa) {
-  return res.status(400).json({ erro: "O campo 'placa' é obrigatório." });
-}
-```
-
-## Exercício 4: GET filtrando por query param
-
-```bash
-curl -s "$BASE?status=DISPONIVEL" | jq .
-```
-
-Use aspas na URL: sem elas o `&` e o `?` podem ser interpretados pelo terminal. Esperado: só veículos com `status` igual a `DISPONIVEL`.
-
-## Exercício 5: PATCH do status do ID 3 para EM_ROTA
-
-```bash
-curl -s -X PATCH $BASE/3 \
+~~~bash
+curl -s -w "\nStatus: %{http_code}\n" -X PATCH http://localhost:3007/api/v1/veiculos/99/status \
   -H "Content-Type: application/json" \
-  -d '{"status":"EM_ROTA"}' | jq .
-```
+  -d '{"status": "EM_ROTA"}'
 
-Conferir:
+curl -s -w "\nStatus: %{http_code}\n" -X DELETE http://localhost:3007/api/v1/veiculos/99
+~~~
 
-```bash
-curl -s $BASE/3 | jq .status
-```
+## Exercicio 07 - Rota PUT
 
-Esperado: `"EM_ROTA"`.
+Rota no `frota_api.js`, depois da rota DELETE e antes do `app.listen`:
 
-## Exercício 6: ID inexistente retorna 404
-
-```bash
-# PATCH
-curl -s -o /dev/null -w "PATCH: %{http_code}\n" -X PATCH $BASE/99 \
-  -H "Content-Type: application/json" -d '{"status":"EM_ROTA"}'
-
-# DELETE
-curl -s -o /dev/null -w "DELETE: %{http_code}\n" -X DELETE $BASE/99
-```
-
-Esperado: `404` nos dois. Se retornar outro código, a rota precisa checar se o veículo existe:
-
-```js
-if (!veiculo) {
-  return res.status(404).json({ erro: "Veículo não encontrado." });
-}
-```
-
-## Exercício 7: nova rota PUT (substitui todos os dados)
-
-Adicionar no `frota_api.js`, antes do `app.listen`. Adapte `veiculos` ao nome do array/lista que o seu código usa:
-
-```js
+~~~javascript
 app.put('/api/v1/veiculos/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const indice = veiculos.findIndex(v => v.id === id);
+    const id = parseInt(req.params.id);
+    const { placa, montadora, modelo, status } = req.body;
+    const veiculo = veiculos.find(v => v.id === id);
 
-  if (indice === -1) {
-    return res.status(404).json({ erro: "Veículo não encontrado." });
-  }
+    if (!veiculo) {
+        return res.status(404).json({ erro: "Veiculo nao encontrado." });
+    }
+    if (!placa || !montadora || !modelo || !status) {
+        return res.status(400).json({ erro: "Campos 'placa', 'montadora', 'modelo' e 'status' sao obrigatorios." });
+    }
 
-  const { montadora, modelo, placa, status } = req.body;
-  if (!montadora || !modelo || !placa || !status) {
-    return res.status(400).json({ erro: "PUT exige todos os campos: montadora, modelo, placa e status." });
-  }
+    veiculo.placa = placa;
+    veiculo.montadora = montadora;
+    veiculo.modelo = modelo;
+    veiculo.status = status.toUpperCase();
 
-  veiculos[indice] = { id, montadora, modelo, placa, status };
-  res.status(200).json(veiculos[indice]);
+    res.status(200).json({ mensagem: "Veiculo atualizado com sucesso!", veiculo });
 });
-```
+~~~
 
-Diferença entre os métodos:
+Reiniciar a API (aba 1):
 
-| Método | Efeito |
-|---|---|
-| PUT | substitui o registro inteiro (todos os campos obrigatórios) |
-| PATCH | altera só os campos enviados |
+~~~bash
+pkill -f frota_api.js
+node frota_api.js
+~~~
 
-Reinicie a API e teste:
+Teste (aba 2, esperado 200):
 
-```bash
-curl -s -X PUT $BASE/1 \
+~~~bash
+curl -s -w "\nStatus: %{http_code}\n" -X PUT http://localhost:3007/api/v1/veiculos/1 \
   -H "Content-Type: application/json" \
-  -d '{"montadora":"Scania","modelo":"R450","placa":"ABC-1234","status":"DISPONIVEL"}' | jq .
-```
+  -d '{"placa": "NEW-0001", "montadora": "Volvo", "modelo": "FH 460", "status": "EM_ROTA"}'
+~~~
 
-Esperado: `200` com o veículo substituído.
+## Exercicio 08 - Script teste_crud.sh
 
-## Exercício 8: script teste_crud.sh com log
+Cadastra 2 veiculos, atualiza 1, deleta o outro e registra tudo em `crud_result.log`.
 
-Salvar como `teste_crud.sh` na `aula04` e dar permissão: `chmod +x teste_crud.sh`
+Criar o script:
 
-```bash
+~~~bash
+cat > teste_crud.sh << 'EOF'
 #!/bin/bash
-BASE="http://localhost:3007/api/v1/veiculos"
-LOG="crud_result.log"
-H="Content-Type: application/json"
-: > "$LOG"
+# Script de teste CRUD - API de Frotas
+BASE_URL="http://localhost:3007/api/v1/veiculos"
+LOG_FILE="crud_result.log"
 
-log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG"; }
+echo "=== Teste CRUD iniciado em $(date) ===" > "$LOG_FILE"
 
-log "1) Cadastrando veiculo A"
-RA=$(curl -s -w "\n%{http_code}" -X POST "$BASE" -H "$H" \
-  -d '{"montadora":"Volvo","modelo":"FH 540","placa":"AAA-1111","status":"DISPONIVEL"}')
-BODY_A=$(echo "$RA" | sed '$d'); log "HTTP $(echo "$RA" | tail -n1) - $BODY_A"
-ID_A=$(echo "$BODY_A" | jq -r '.id // .veiculo.id // .dados.id')
+echo "" >> "$LOG_FILE"
+echo "--- 1. Cadastrando veiculo 1 (Volvo FH 540) ---" >> "$LOG_FILE"
+curl -s -w "\nStatus: %{http_code}\n" -X POST "$BASE_URL" \
+  -H "Content-Type: application/json" \
+  -d '{"placa": "KLL-9090", "montadora": "Volvo", "modelo": "FH 540"}' >> "$LOG_FILE"
 
-log "2) Cadastrando veiculo B"
-RB=$(curl -s -w "\n%{http_code}" -X POST "$BASE" -H "$H" \
-  -d '{"montadora":"Scania","modelo":"R450","placa":"BBB-2222","status":"DISPONIVEL"}')
-BODY_B=$(echo "$RB" | sed '$d'); log "HTTP $(echo "$RB" | tail -n1) - $BODY_B"
-ID_B=$(echo "$BODY_B" | jq -r '.id // .veiculo.id // .dados.id')
+echo "" >> "$LOG_FILE"
+echo "--- 2. Cadastrando veiculo 2 (Iveco Daily) ---" >> "$LOG_FILE"
+curl -s -w "\nStatus: %{http_code}\n" -X POST "$BASE_URL" \
+  -H "Content-Type: application/json" \
+  -d '{"placa": "RTM-4040", "montadora": "Iveco", "modelo": "Daily"}' >> "$LOG_FILE"
 
-log "3) Atualizando veiculo A (id $ID_A) para EM_ROTA"
-RU=$(curl -s -w "\n%{http_code}" -X PATCH "$BASE/$ID_A" -H "$H" -d '{"status":"EM_ROTA"}')
-log "HTTP $(echo "$RU" | tail -n1) - $(echo "$RU" | sed '$d')"
+# Pega os IDs dos dois ultimos veiculos cadastrados
+ID1=$(curl -s "$BASE_URL" | jq '.[-2].id')
+ID2=$(curl -s "$BASE_URL" | jq '.[-1].id')
 
-log "4) Deletando veiculo B (id $ID_B)"
-RD=$(curl -s -w "\n%{http_code}" -X DELETE "$BASE/$ID_B")
-log "HTTP $(echo "$RD" | tail -n1) - $(echo "$RD" | sed '$d')"
+echo "" >> "$LOG_FILE"
+echo "--- 3. Atualizando status do veiculo ID $ID1 para EM_ROTA ---" >> "$LOG_FILE"
+curl -s -w "\nStatus: %{http_code}\n" -X PATCH "$BASE_URL/$ID1/status" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "EM_ROTA"}' >> "$LOG_FILE"
 
-log "Fim do teste. Log salvo em $LOG"
-```
+echo "" >> "$LOG_FILE"
+echo "--- 4. Deletando veiculo ID $ID2 ---" >> "$LOG_FILE"
+curl -s -w "\nStatus: %{http_code}\n" -X DELETE "$BASE_URL/$ID2" >> "$LOG_FILE"
 
-Rodar:
+echo "" >> "$LOG_FILE"
+echo "--- 5. Listagem final da frota ---" >> "$LOG_FILE"
+curl -s "$BASE_URL" | jq >> "$LOG_FILE"
 
-```bash
+echo "" >> "$LOG_FILE"
+echo "=== Teste CRUD finalizado em $(date) ===" >> "$LOG_FILE"
+
+echo "Testes concluidos! Veja o resultado em $LOG_FILE"
+EOF
+~~~
+
+Executar e ver o log:
+
+~~~bash
+chmod +x teste_crud.sh
 ./teste_crud.sh
 cat crud_result.log
-```
+~~~
 
-Esperado: cadastros com `201`, atualização com `200`, exclusão com `200` ou `204`.
+Para um log limpo, reinicie a API antes (aba 1: `pkill -f frota_api.js` e `node frota_api.js`) e rode o script na aba 2. Os dados ficam em memoria, entao cada execucao deixa um veiculo novo na frota.
 
-## Tabela de status HTTP da aula
+### Resultado obtido (`crud_result.log`)
 
-| Código | Significado | Quando |
-|---|---|---|
-| 200 | OK | GET, PUT, PATCH com sucesso |
-| 201 | Created | POST criou o recurso |
-| 204 | No Content | DELETE sem corpo de resposta |
-| 400 | Bad Request | campo obrigatório ausente |
-| 404 | Not Found | ID inexistente |
+~~~
+--- 1. Cadastrando veiculo 1 (Volvo FH 540) ---
+{"id":7,"placa":"KLL-9090","montadora":"Volvo","modelo":"FH 540","status":"DISPONIVEL"}
+Status: 201
 
-## Problemas comuns
+--- 2. Cadastrando veiculo 2 (Iveco Daily) ---
+{"id":8,"placa":"RTM-4040","montadora":"Iveco","modelo":"Daily","status":"DISPONIVEL"}
+Status: 201
 
-| Sintoma | Solução |
-|---|---|
-| `Connection refused` / status `000` | API fora do ar ou porta errada: `grep -n listen frota_api.js` |
-| `EADDRINUSE` | porta ocupada: `pm2 stop api-cicd` ou `pkill -f frota_api.js` |
-| `jq: command not found` | `sudo apt install -y jq` |
-| POST retorna 400 mesmo com placa | falta o header `Content-Type: application/json` |
-| `ID_A` vazio no script | veja o corpo do POST e ajuste o caminho do `jq` (`.id`, `.veiculo.id`...) |
-| URL com `?` quebra no terminal | colocar a URL entre aspas |
-| `curl` do PUT dá `Cannot PUT` | rota não foi adicionada ou a API não foi reiniciada |
+--- 3. Atualizando status do veiculo ID 7 para EM_ROTA ---
+{"mensagem":"Status atualizado com sucesso!","veiculo":{"id":7,"placa":"KLL-9090","montadora":"Volvo","modelo":"FH 540","status":"EM_ROTA"}}
+Status: 200
 
-## Pontos que caem na prova
+--- 4. Deletando veiculo ID 8 ---
+{"mensagem":"Veiculo ID 8 removido com sucesso."}
+Status: 200
+~~~
 
-1. POST cria (201), GET lê (200), PUT substitui tudo, PATCH altera parte, DELETE remove.
-2. `Content-Type: application/json` é obrigatório no POST, PUT e PATCH.
-3. Validação de campo obrigatório retorna 400; recurso inexistente retorna 404.
-4. Query param vem depois do `?` e várias condições se juntam com `&`.
-5. `curl -i` mostra os cabeçalhos e o status; `-s -o /dev/null -w "%{http_code}"` mostra só o código.
-6. Reinicie a API depois de editar o `frota_api.js`.
-7. Não versione `node_modules`, `.env` nem `*.log`.
+Na listagem final (passo 5) o ID 7 aparece e o ID 8 nao, o que confirma a atualizacao e a exclusao.
+
+## Arquivos da entrega
+
+- `frota_api.js`
+- `teste_crud.sh`
+- `crud_result.log`
+- `README.md`

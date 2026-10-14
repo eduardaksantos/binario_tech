@@ -99,3 +99,26 @@ app.put('/api/v1/veiculos/:id', (req, res) => {
 
     res.status(200).json({ mensagem: "Veiculo atualizado com sucesso!", veiculo });
 });
+
+app.put('/api/v1/veiculos/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const { placa, montadora, modelo } = req.body;
+
+  if (!placa || !montadora || !modelo) {
+    return res.status(400).json({ 
+      erro: "Campos 'placa', 'montadora' e 'modelo' sao obrigatorios." 
+    });
+  }
+
+  const veiculo = veiculos.find(v => v.id === id);
+
+  if (!veiculo) {
+    return res.status(404).json({ erro: "Veiculo nao encontrado." });
+  }
+
+  veiculo.placa = placa;
+  veiculo.montadora = montadora;
+  veiculo.modelo = modelo;
+
+  return res.status(200).json(veiculo);
+});
