@@ -1,0 +1,65 @@
+=== Teste CRUD iniciado em qui 15 out 2026 14:09:26 -03 ===
+
+--- 1. Cadastrando veiculo 1 (Volvo FH 540) ---
+{"id":6,"placa":"KLL-9090","montadora":"Volvo","modelo":"FH 540","status":"DISPONIVEL"}
+Status: 201
+
+--- 2. Cadastrando veiculo 2 (Iveco Daily) ---
+{"id":7,"placa":"RTM-4040","montadora":"Iveco","modelo":"Daily","status":"DISPONIVEL"}
+Status: 201
+
+--- 3. Atualizando status do veiculo ID 6 para EM_ROTA ---
+{"mensagem":"Status atualizado com sucesso!","veiculo":{"id":6,"placa":"KLL-9090","montadora":"Volvo","modelo":"FH 540","status":"EM_ROTA"}}
+Status: 200
+
+--- 4. Deletando veiculo ID 7 ---
+{"mensagem":"Veiculo ID 7 removido com sucesso."}
+Status: 200
+
+--- 5. Listagem final da frota ---
+[
+  {
+    "id": 1,
+    "placa": "NEW-0001",
+    "montadora": "Volvo",
+    "modelo": "FH 460",
+    "status": "EM_ROTA"
+  },
+  {
+    "id": 2,
+    "placa": "XYZ-9876",
+    "montadora": "Mercedes-Benz",
+    "modelo": "Actros",
+    "status": "EM_ROTA"
+  },
+  {
+    "id": 3,
+    "placa": "KLL-9090",
+    "montadora": "Volvo",
+    "modelo": "FH 540",
+    "status": "EM_ROTA"
+  },
+  {
+    "id": 4,
+    "placa": "KLL-9090",
+    "montadora": "Volvo",
+    "modelo": "FH 540",
+    "status": "EM_ROTA"
+  },
+  {
+    "id": 5,
+    "placa": "KLL-9090",
+    "montadora": "Volvo",
+    "modelo": "FH 540",
+    "status": "EM_ROTA"
+  },
+  {
+    "id": 6,
+    "placa": "KLL-9090",
+    "montadora": "Volvo",
+    "modelo": "FH 540",
+    "status": "EM_ROTA"
+  }
+]
+
+=== Teste CRUD finalizado em qui 15 out 2026 14:09:26 -03 ===
