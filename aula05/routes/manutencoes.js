@@ -1,34 +1,45 @@
 const express = require('express');
 const router = express.Router();
 
-let manutencoes = [
-    { id: 1, veiculo: "Caminhão Volvo FH", descricao: "Troca de óleo e filtros", valor: 850.00, status: "concluida" },
-    { id: 2, veiculo: "Caminhão Scania R450", descricao: "Revisão de freios", valor: 1200.50, status: "pendente" }
-];
+// Armazenamento em memória (simples, para o exercício)
+const manutencoes = [];
+let proximoId = 1;
 
-// GET /api/v1/manutencoes
+// GET /api/v1/manutencoes -> lista todos os orçamentos (aceita ?placa=ABC1D23)
 router.get('/', (req, res) => {
-    res.status(200).json(manutencoes);
+  const { placa } = req.query;
+  const resultado = placa
+    ? manutencoes.filter(m => m.caminhaoPlaca.toLowerCase() === placa.toLowerCase())
+    : manutencoes;
+
+  res.status(200).json({ total: resultado.length, manutencoes: resultado });
 });
 
-// POST /api/v1/manutencoes (Com validacao inline)
+// POST /api/v1/manutencoes -> cadastra um novo orçamento
 router.post('/', (req, res) => {
-    const { veiculo, descricao, valor, status } = req.body;
+  const { caminhaoPlaca, descricao, valorOrcamento } = req.body || {};
 
-    if (!veiculo || !descricao || !valor) {
-        return res.status(400).json({ erro: "Campos 'veiculo', 'descricao' e 'valor' sao obrigatorios." });
-    }
+  if (!caminhaoPlaca || !descricao || valorOrcamento === undefined) {
+    return res.status(400).json({
+      erro: 'Campos obrigatórios: caminhaoPlaca, descricao, valorOrcamento'
+    });
+  }
 
-    const novaManutencao = {
-        id: manutencoes.length + 1,
-        veiculo,
-        descricao,
-        valor,
-        status: status || "pendente"
-    };
+  if (typeof valorOrcamento !== 'number' || valorOrcamento < 0) {
+    return res.status(400).json({ erro: 'valorOrcamento deve ser um número maior ou igual a 0' });
+  }
 
-    manutencoes.push(novaManutencao);
-    res.status(201).json(novaManutencao);
+  const nova = {
+    id: proximoId++,
+    caminhaoPlaca,
+    descricao,
+    valorOrcamento,
+    status: 'pendente',
+    criadoEm: new Date().toISOString()
+  };
+
+  manutencoes.push(nova);
+  res.status(201).json(nova);
 });
 
 module.exports = router;

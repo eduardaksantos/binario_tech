@@ -4,7 +4,7 @@ function loggerMiddleware(req, res, next) {
 
 		res.on('finish', () => {
 			const duracao = Date.now() - inicio;
-			console.log(`[LOG ${timestamp}] ${req.method} ${req.originalUrl} - Status: ${res.statusCode} ($duracao}ms)`); 
+			console.log(`[LOG ${timestamp}] ${req.method} ${req.originalUrl} - Status: ${res.statusCode} (${duracao}ms)`); 
 		});
 
 		next();
